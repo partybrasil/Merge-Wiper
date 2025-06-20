@@ -38,7 +38,7 @@ def print_menu_title(title):
 def interactive_folder_selection(start_path=None):
     """
     Permite al usuario navegar por las carpetas de manera interactiva desde la consola.
-    Devuelve la ruta seleccionada por el usuario.
+    Devuelve la ruta seleccionada por el usuario o None si el usuario desea volver al menú principal.
     """
     if start_path is None:
         start_path = os.getcwd()  # Usa la carpeta actual si no se especifica otra
@@ -52,8 +52,10 @@ def interactive_folder_selection(start_path=None):
             print(f"  {idx+1}. {entry}")
         print(Fore.MAGENTA + "0. Seleccionar esta carpeta")
         print(Fore.MAGENTA + "u. Subir un nivel")
+        print(Fore.MAGENTA + "m. Volver al menú principal")
+        print(Fore.MAGENTA + "q. Cerrar la aplicación")
         # Solicita al usuario que seleccione una opción
-        sel = input(Fore.WHITE + "Seleccione una opción (número, 0 para seleccionar, u para subir): ").strip()
+        sel = input(Fore.WHITE + "Seleccione una opción (número, 0 para seleccionar, u para subir, m para menú, q para salir): ").strip()
         if sel == '0':
             return current_path  # Devuelve la carpeta actual
         elif sel.lower() == 'u':
@@ -62,6 +64,11 @@ def interactive_folder_selection(start_path=None):
                 print(Fore.RED + "Ya está en la carpeta raíz.")
             else:
                 current_path = parent  # Sube un nivel en la jerarquía de carpetas
+        elif sel.lower() == 'm':
+            return None  # Volver al menú principal
+        elif sel.lower() == 'q':
+            print(Fore.YELLOW + "Cerrando la aplicación...")
+            sys.exit(0)
         elif sel.isdigit():
             idx = int(sel) - 1
             if 0 <= idx < len(entries):
@@ -75,6 +82,7 @@ def ask_file_paths(prompt_msg, multiple=False, allow_file_dialog=False):
     """
     Solicita al usuario las rutas de los archivos XLSX a procesar.
     Permite seleccionar uno o varios archivos, ya sea por consola o usando un navegador de archivos gráfico.
+    Permite volver al menú principal o cerrar la app.
     """
     print(Fore.GREEN + prompt_msg)
     files = []
@@ -82,19 +90,20 @@ def ask_file_paths(prompt_msg, multiple=False, allow_file_dialog=False):
         print(Fore.YELLOW + "¿Cómo desea seleccionar los archivos?")
         print(Fore.MAGENTA + "1. Seleccionar desde una carpeta (navegación interactiva)")
         print(Fore.MAGENTA + "2. Seleccionar usando el navegador de archivos (permite selección múltiple)")
+        print(Fore.MAGENTA + "m. Volver al menú principal")
+        print(Fore.MAGENTA + "q. Cerrar la aplicación")
         while True:
-            sel = input(Fore.WHITE + "Seleccione una opción (1 o 2): ").strip()
+            sel = input(Fore.WHITE + "Seleccione una opción (1, 2, m, q): ").strip()
             if sel == '1':
-                # Permite navegar por carpetas desde la consola
                 folder = interactive_folder_selection()
-                # Busca archivos .xlsx en la carpeta seleccionada
+                if folder is None:
+                    return None  # Volver al menú principal
                 files = [os.path.join(folder, f) for f in os.listdir(folder) if f.lower().endswith('.xlsx') and os.path.isfile(os.path.join(folder, f))]
                 if not files:
                     print(Fore.RED + "No se encontraron archivos .xlsx en la carpeta.")
                     return []
                 break
             elif sel == '2':
-                # Abre un navegador de archivos gráfico para seleccionar archivos
                 root = tk.Tk()
                 root.withdraw()  # Oculta la ventana principal de Tkinter
                 if multiple:
@@ -114,12 +123,23 @@ def ask_file_paths(prompt_msg, multiple=False, allow_file_dialog=False):
                     print(Fore.RED + "No se seleccionaron archivos.")
                     return []
                 break
+            elif sel.lower() == 'm':
+                return None  # Volver al menú principal
+            elif sel.lower() == 'q':
+                print(Fore.YELLOW + "Cerrando la aplicación...")
+                sys.exit(0)
             else:
                 print(Fore.RED + "Opción inválida.")
         return files
     # Selección manual por consola
+    print(Fore.MAGENTA + "Ingrese la ruta de archivo o escriba 'm' para menú principal, 'q' para salir.")
     while True:
         path = input(Fore.WHITE + "Ruta de archivo (deja vacío para terminar): ").strip()
+        if path.lower() == 'm':
+            return None
+        if path.lower() == 'q':
+            print(Fore.YELLOW + "Cerrando la aplicación...")
+            sys.exit(0)
         if not path:
             if multiple and files:
                 break
@@ -143,16 +163,52 @@ def ask_file_paths(prompt_msg, multiple=False, allow_file_dialog=False):
 def ask_output_path(default_name):
     """
     Solicita al usuario la carpeta y el nombre del archivo de salida.
-    Si el usuario no ingresa nada, usa la carpeta actual y un nombre por defecto.
+    Ofrece tres modos: carpeta actual, navegación CLI, o navegador de archivos GUI.
+    Permite volver al menú principal o cerrar la app.
     """
     print(Fore.GREEN + "¿Dónde desea guardar el archivo de salida?")
-    folder = input(Fore.WHITE + "Ruta de carpeta (deja vacío para usar la carpeta actual): ").strip()
-    if not folder:
-        folder = os.getcwd()
+    print(Fore.YELLOW + "Formas de establecer la carpeta de salida:")
+    print(Fore.MAGENTA + "1. Carpeta actual (deja vacío para usar la carpeta actual)")
+    print(Fore.MAGENTA + "2. Seleccionar desde una carpeta por CLI (navegación interactiva por consola)")
+    print(Fore.MAGENTA + "3. Seleccionar usando el navegador de archivos GUI")
+    print(Fore.MAGENTA + "m. Volver al menú principal")
+    print(Fore.MAGENTA + "q. Cerrar la aplicación")
+    folder = ""
+    while True:
+        sel = input(Fore.WHITE + "Seleccione una opción (1, 2, 3, m, q) o deje vacío para carpeta actual: ").strip()
+        if not sel or sel == '1':
+            folder = os.getcwd()
+            break
+        elif sel == '2':
+            folder = interactive_folder_selection()
+            if folder is None:
+                return None
+            break
+        elif sel == '3':
+            root = tk.Tk()
+            root.withdraw()
+            folder = filedialog.askdirectory(title="Selecciona la carpeta de destino")
+            root.destroy()
+            if not folder:
+                print(Fore.RED + "No se seleccionó ninguna carpeta. Usando carpeta actual.")
+                folder = os.getcwd()
+            break
+        elif sel.lower() == 'm':
+            return None
+        elif sel.lower() == 'q':
+            print(Fore.YELLOW + "Cerrando la aplicación...")
+            sys.exit(0)
+        else:
+            print(Fore.RED + "Opción inválida.")
     if not os.path.isdir(folder):
         print(Fore.RED + "La carpeta no existe. Usando carpeta actual.")
         folder = os.getcwd()
     name = input(Fore.WHITE + f"Nombre del archivo de salida (sin extensión, por defecto '{default_name}'): ").strip()
+    if name.lower() == 'm':
+        return None
+    if name.lower() == 'q':
+        print(Fore.YELLOW + "Cerrando la aplicación...")
+        sys.exit(0)
     if not name:
         name = default_name
     return os.path.join(folder, name + '.xlsx')
@@ -222,6 +278,8 @@ def merge_xlsx():
         multiple=True,
         allow_file_dialog=True
     )
+    if files is None:
+        return  # Volver al menú principal
     if not files:
         print(Fore.RED + "No se seleccionaron archivos.")
         return
@@ -229,6 +287,8 @@ def merge_xlsx():
         print(Fore.RED + "Los archivos no tienen los mismos encabezados. Operación cancelada.")
         return
     output_path = ask_output_path("merge_result")
+    if output_path is None:
+        return  # Volver al menú principal
     # --- INICIO MEDICIÓN DE RECURSOS Y TIEMPO ---
     start_time = time.time()
     process = psutil.Process(os.getpid())
@@ -303,6 +363,8 @@ def wipe_xlsx():
         multiple=False,
         allow_file_dialog=True
     )
+    if files is None:
+        return  # Volver al menú principal
     if not files:
         print(Fore.RED + "No se seleccionó archivo.")
         return
@@ -324,7 +386,12 @@ def wipe_xlsx():
             print(f"  Columna {col_letter} - {header}")
         # Solicita al usuario la columna que contiene los valores únicos
         while True:
-            col_input = input(Fore.WHITE + "¿Qué columna contiene los valores únicos? (Letra de columna): ").strip().upper()
+            col_input = input(Fore.WHITE + "¿Qué columna contiene los valores únicos? (Letra de columna, 'm' menú, 'q' salir): ").strip().upper()
+            if col_input.lower() == 'm':
+                return  # Volver al menú principal
+            if col_input.lower() == 'q':
+                print(Fore.YELLOW + "Cerrando la aplicación...")
+                sys.exit(0)
             if not col_input:
                 print(Fore.RED + "Debes ingresar una letra de columna.")
                 continue
@@ -349,6 +416,8 @@ def wipe_xlsx():
                 seen.add(val)
                 rows_to_keep.append(row)
         output_path = ask_output_path("wipe_result")
+        if output_path is None:
+            return  # Volver al menú principal
         wb_out = Workbook()
         ws_out = wb_out.active
         for row in rows_to_keep:
@@ -400,6 +469,9 @@ def main_menu():
         elif choice == '3':
             print(Fore.YELLOW + "¡Hasta luego!")
             break
+        elif choice.lower() == 'q':
+            print(Fore.YELLOW + "Cerrando la aplicación...")
+            sys.exit(0)
         else:
             print(Fore.RED + "Opción inválida. Intente de nuevo.")
 
@@ -407,5 +479,7 @@ if __name__ == "__main__":
     # Punto de entrada principal del programa
     try:
         main_menu()
+    except KeyboardInterrupt:
+        print(Fore.YELLOW + "\nOperación cancelada por el usuario.")
     except KeyboardInterrupt:
         print(Fore.YELLOW + "\nOperación cancelada por el usuario.")
