@@ -88,8 +88,8 @@ def ask_file_paths(prompt_msg, multiple=False, allow_file_dialog=False):
     files = []
     if allow_file_dialog:
         print(Fore.YELLOW + "¿Cómo desea seleccionar los archivos?")
-        print(Fore.MAGENTA + "1. Seleccionar desde una carpeta (navegación interactiva)")
-        print(Fore.MAGENTA + "2. Seleccionar usando el navegador de archivos (permite selección múltiple)")
+        print(Fore.MAGENTA + "1. (CLI) Seleccionar desde una carpeta (navegación cli interactiva)")
+        print(Fore.MAGENTA + "2. (GUI) Seleccionar usando el navegador de archivos (permite selección múltiple en gui)")
         print(Fore.MAGENTA + "m. Volver al menú principal")
         print(Fore.MAGENTA + "q. Cerrar la aplicación")
         while True:
@@ -168,9 +168,9 @@ def ask_output_path(default_name):
     """
     print(Fore.GREEN + "¿Dónde desea guardar el archivo de salida?")
     print(Fore.YELLOW + "Formas de establecer la carpeta de salida:")
-    print(Fore.MAGENTA + "1. Carpeta actual (deja vacío para usar la carpeta actual)")
-    print(Fore.MAGENTA + "2. Seleccionar desde una carpeta por CLI (navegación interactiva por consola)")
-    print(Fore.MAGENTA + "3. Seleccionar usando el navegador de archivos GUI")
+    print(Fore.MAGENTA + "1. (FAST) Carpeta actual (deja vacío para usar la carpeta actual)")
+    print(Fore.MAGENTA + "2. (CLI)Seleccionar desde una carpeta por CLI (navegación interactiva por consola)")
+    print(Fore.MAGENTA + "3. (GUI) Seleccionar usando el navegador de archivos GUI")
     print(Fore.MAGENTA + "m. Volver al menú principal")
     print(Fore.MAGENTA + "q. Cerrar la aplicación")
     folder = ""
@@ -274,7 +274,7 @@ def merge_xlsx():
     """
     print_menu_title("Función MERGE - Consolidar archivos XLSX")
     files = ask_file_paths(
-        "Selecciona los archivos XLSX a combinar (misma estructura):",
+        "Selecciona los archivos XLSX a combinar (varios archivos con misma estructura):",
         multiple=True,
         allow_file_dialog=True
     )
@@ -359,7 +359,7 @@ def wipe_xlsx():
     """
     print_menu_title("Función WIPE - Eliminar duplicados en archivo XLSX")
     files = ask_file_paths(
-        "Selecciona el archivo XLSX a purgar (solo uno):",
+        "Selecciona el archivo XLSX a purgar (archivo unico):",
         multiple=False,
         allow_file_dialog=True
     )
@@ -458,8 +458,8 @@ def main_menu():
     """
     while True:
         print_menu_title("MERGE-WIPER - Menú Principal")
-        print(Fore.MAGENTA + "1. Merge (Combinar archivos XLSX)")
-        print(Fore.MAGENTA + "2. Wipe (Eliminar duplicados en archivo XLSX)")
+        print(Fore.MAGENTA + "1. Merge (Combinar/Mergear archivos XLSX)")
+        print(Fore.MAGENTA + "2. Wipe (Eliminar/Wipear duplicados en archivo XLSX)")
         print(Fore.MAGENTA + "3. Salir")
         choice = input(Fore.WHITE + "Seleccione una opción: ").strip()
         if choice == '1':
